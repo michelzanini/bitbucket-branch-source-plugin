@@ -160,6 +160,14 @@ public class BitbucketBuildStatusNotifications {
         @Override
         public void onCheckout(Run<?, ?> build, SCM scm, FilePath workspace, TaskListener listener, File changelogFile,
                                SCMRevisionState pollingBaseline) throws Exception {
+
+            if (workspace.getRemote().endsWith("@script")) {
+                //this checkout is done to read the Jenkinsfile
+                //that means there will be another checkout
+                //so no need to notify Bitbucket twice
+                return;
+            }
+
             try {
                 sendNotifications(build, listener);
             } catch (IOException | InterruptedException e) {
