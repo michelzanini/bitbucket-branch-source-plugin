@@ -39,6 +39,8 @@ import hudson.scm.SCMRevisionState;
 import java.io.File;
 import java.io.IOException;
 import javax.annotation.CheckForNull;
+
+import hudson.slaves.WorkspaceList;
 import jenkins.model.JenkinsLocationConfiguration;
 import jenkins.plugins.git.AbstractGitSCMSource;
 import jenkins.scm.api.SCMHeadObserver;
@@ -147,7 +149,8 @@ public class BitbucketBuildStatusNotifications {
         public void onCheckout(Run<?, ?> build, SCM scm, FilePath workspace, TaskListener listener, File changelogFile,
                                SCMRevisionState pollingBaseline) throws Exception {
 
-            if (workspace.getRemote().endsWith("@script")) {
+            String delimiter = System.getProperty(WorkspaceList.class.getName(), "@");
+            if (workspace.getRemote().endsWith(delimiter + "script")) {
                 //this checkout is done to read the Jenkinsfile
                 //that means there will be another checkout
                 //so no need to notify Bitbucket twice
