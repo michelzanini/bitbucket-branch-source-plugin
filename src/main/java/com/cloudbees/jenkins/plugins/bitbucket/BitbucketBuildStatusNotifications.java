@@ -149,6 +149,8 @@ public class BitbucketBuildStatusNotifications {
         public void onCheckout(Run<?, ?> build, SCM scm, FilePath workspace, TaskListener listener, File changelogFile,
                                SCMRevisionState pollingBaseline) throws Exception {
 
+            //FIXME - temporary hack until we can avoid doing two Git checkouts when building PRs with merge strategy
+            //FIXME - this can be removed when only one Git checkout is performed
             String delimiter = System.getProperty(WorkspaceList.class.getName(), "@");
             if (workspace.getRemote().endsWith(delimiter + "script")) {
                 //this checkout is done to read the Jenkinsfile
