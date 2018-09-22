@@ -28,6 +28,7 @@ import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketBuildStatus;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.FilePath;
+import hudson.model.InvisibleAction;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -40,7 +41,6 @@ import java.io.File;
 import java.io.IOException;
 import javax.annotation.CheckForNull;
 
-import hudson.slaves.WorkspaceList;
 import jenkins.model.JenkinsLocationConfiguration;
 import jenkins.plugins.git.AbstractGitSCMSource;
 import jenkins.scm.api.SCMHeadObserver;
@@ -159,24 +159,29 @@ public class BitbucketBuildStatusNotifications {
     @Extension
     public static class JobCheckOutListener extends SCMListener {
 
+        /**
+         * Marks when the first Git checkout has being completed.
+         * When building PRs with merge strategy two checkouts are done, one to obtain the Jenkinsfile and one to obtain the source code.
+         * When importing libraries, each library also executes a checkout.
+         * This avoids sending multiple notifications to Bitbucket by remembering the first checkout.
+         */
+        private static class FirstCheckoutCompletedAction extends InvisibleAction {}
+
         @Override
         public void onCheckout(Run<?, ?> build, SCM scm, FilePath workspace, TaskListener listener, File changelogFile,
                                SCMRevisionState pollingBaseline) throws Exception {
 
-            //FIXME - temporary hack until we can avoid doing two Git checkouts when building PRs with merge strategy
-            //FIXME - this can be removed when only one Git checkout is performed
-            String delimiter = System.getProperty(WorkspaceList.class.getName(), "@");
-            if (workspace.getRemote().endsWith(delimiter + "script")) {
-                //this checkout is done to read the Jenkinsfile
-                //that means there will be another checkout
-                //so no need to notify Bitbucket twice
-                return;
-            }
+            boolean hasCompletedCheckoutBefore =
+                build.getAction(FirstCheckoutCompletedAction.class) != null;
 
-            try {
-                sendNotifications(build, listener);
-            } catch (IOException | InterruptedException e) {
-                e.printStackTrace(listener.error("Could not send notifications"));
+            if (!hasCompletedCheckoutBefore) {
+                build.addAction(new FirstCheckoutCompletedAction());
+
+                try {
+                    sendNotifications(build, listener);
+                } catch (IOException | InterruptedException e) {
+                    e.printStackTrace(listener.error("Could not send notifications"));
+                }
             }
         }
     }
