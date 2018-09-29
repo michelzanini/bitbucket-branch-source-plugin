@@ -167,23 +167,15 @@ public class BitbucketBuildStatusNotifications {
     @Extension
     public static class JobCheckOutListener extends SCMListener {
 
-        /**
-         * Marks when the first Git checkout has being completed.
-         * When building PRs with merge strategy two checkouts are done, one to obtain the Jenkinsfile and one to obtain the source code.
-         * When importing libraries, each library also executes a checkout.
-         * This avoids sending multiple notifications to Bitbucket by remembering the first checkout.
-         */
-        private static class FirstCheckoutCompletedAction extends InvisibleAction {}
-
         @Override
         public void onCheckout(Run<?, ?> build, SCM scm, FilePath workspace, TaskListener listener, File changelogFile,
                                SCMRevisionState pollingBaseline) throws Exception {
 
             boolean hasCompletedCheckoutBefore =
-                build.getAction(FirstCheckoutCompletedAction.class) != null;
+                build.getAction(FirstCheckoutCompletedInvisibleAction.class) != null;
 
             if (!hasCompletedCheckoutBefore) {
-                build.addAction(new FirstCheckoutCompletedAction());
+                build.addAction(new FirstCheckoutCompletedInvisibleAction());
 
                 try {
                     sendNotifications(build, listener);
