@@ -28,7 +28,6 @@ import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketBuildStatus;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.FilePath;
-import hudson.model.InvisibleAction;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
