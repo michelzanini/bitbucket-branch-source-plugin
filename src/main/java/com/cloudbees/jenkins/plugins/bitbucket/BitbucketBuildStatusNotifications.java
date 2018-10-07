@@ -40,7 +40,6 @@ import hudson.scm.SCMRevisionState;
 import java.io.File;
 import java.io.IOException;
 import javax.annotation.CheckForNull;
-
 import jenkins.model.JenkinsLocationConfiguration;
 import jenkins.plugins.git.AbstractGitSCMSource;
 import jenkins.scm.api.SCMHeadObserver;
